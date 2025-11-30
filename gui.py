@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 from typing import Dict
 import threading
-from main import modify_pptx, modify_ppt
+from main import modify_pptx, modify_ppt, export_to_pdf
 
 
 class PPTModifierFrame(wx.Frame):
@@ -19,7 +19,7 @@ class PPTModifierFrame(wx.Frame):
     def __init__(self):
         super().__init__(
             parent=None,
-            title='PowerPoint Text Modifier',
+            title='pptmod',
             size=(700, 550)
         )
         
@@ -40,7 +40,7 @@ class PPTModifierFrame(wx.Frame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
         # Title
-        title = wx.StaticText(self.panel, label="PowerPoint Text Modifier")
+        title = wx.StaticText(self.panel, label="pptmod")
         title_font = title.GetFont()
         title_font.PointSize += 4
         title_font = title_font.Bold()
@@ -125,6 +125,10 @@ class PPTModifierFrame(wx.Frame):
         self.process_btn = wx.Button(self.panel, label="Process PowerPoint", size=(150, 35))
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_process)
         button_sizer.Add(self.process_btn, 0, wx.RIGHT, 10)
+        
+        self.export_pdf_btn = wx.Button(self.panel, label="Export to PDF", size=(120, 35))
+        self.export_pdf_btn.Bind(wx.EVT_BUTTON, self.on_export_pdf)
+        button_sizer.Add(self.export_pdf_btn, 0, wx.RIGHT, 10)
         
         self.toggle_log_btn = wx.Button(self.panel, label="Hide Log")
         self.toggle_log_btn.Bind(wx.EVT_BUTTON, self.on_toggle_log)
@@ -351,6 +355,91 @@ class PPTModifierFrame(wx.Frame):
     def on_clear_log(self, event):
         """Clear the log text."""
         self.log_text.Clear()
+    
+    def on_export_pdf(self, event):
+        """Handle export to PDF button click."""
+        # Validate input file
+        if not self.input_file:
+            wx.MessageBox(
+                "Please select an input PowerPoint file first.",
+                "Missing Input",
+                wx.OK | wx.ICON_WARNING
+            )
+            return
+        
+        if not os.path.exists(self.input_file):
+            wx.MessageBox(
+                f"Input file does not exist:\n{self.input_file}",
+                "File Not Found",
+                wx.OK | wx.ICON_ERROR
+            )
+            return
+        
+        # Ask user where to save PDF
+        input_path = Path(self.input_file)
+        default_pdf = str(input_path.parent / f"{input_path.stem}.pdf")
+        
+        wildcard = "PDF files (*.pdf)|*.pdf|All files (*.*)|*.*"
+        dialog = wx.FileDialog(
+            self,
+            "Save PDF As",
+            defaultDir=str(input_path.parent),
+            defaultFile=f"{input_path.stem}.pdf",
+            wildcard=wildcard,
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        )
+        
+        if dialog.ShowModal() != wx.ID_OK:
+            dialog.Destroy()
+            return
+        
+        pdf_path = dialog.GetPath()
+        dialog.Destroy()
+        
+        # Disable buttons during export
+        self.export_pdf_btn.Enable(False)
+        self.process_btn.Enable(False)
+        
+        self.log("\n" + "="*50)
+        self.log("Exporting to PDF...")
+        self.log(f"Input: {self.input_file}")
+        self.log(f"Output PDF: {pdf_path}")
+        
+        # Run export in a separate thread
+        thread = threading.Thread(
+            target=self.export_to_pdf_thread,
+            args=(self.input_file, pdf_path)
+        )
+        thread.daemon = True
+        thread.start()
+    
+    def export_to_pdf_thread(self, input_file: str, pdf_path: str):
+        """Export PowerPoint to PDF (runs in separate thread)."""
+        try:
+            export_to_pdf(input_file, pdf_path)
+            wx.CallAfter(self.log, "✓ PDF export completed successfully!")
+            wx.CallAfter(self.log, f"PDF saved to: {pdf_path}")
+            wx.CallAfter(self.show_pdf_success, pdf_path)
+        
+        except Exception as e:
+            wx.CallAfter(self.log, f"ERROR: {str(e)}")
+            wx.CallAfter(wx.MessageBox, f"Error exporting to PDF:\n{str(e)}", "Error", wx.OK | wx.ICON_ERROR)
+        
+        finally:
+            wx.CallAfter(self.export_pdf_btn.Enable, True)
+            wx.CallAfter(self.process_btn.Enable, True)
+    
+    def show_pdf_success(self, pdf_path):
+        """Show PDF export success dialog."""
+        result = wx.MessageBox(
+            f"PDF exported successfully!\n\nSaved to:\n{pdf_path}\n\nWould you like to open the PDF folder?",
+            "Success",
+            wx.YES_NO | wx.ICON_INFORMATION
+        )
+        
+        if result == wx.YES:
+            folder = str(Path(pdf_path).parent)
+            os.startfile(folder)
         
     def on_quit(self, event):
         """Handle quit button."""

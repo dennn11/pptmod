@@ -72,6 +72,35 @@ def modify_pptx(input_file: str, output_file: str, replacements: Dict[str, str])
         sys.exit(1)
 
 
+def export_to_pdf(input_file: str, output_pdf: str) -> None:
+    """Export a PowerPoint file to PDF using COM automation (Windows only)."""
+    try:
+        # Convert to absolute paths
+        input_path = os.path.abspath(input_file)
+        output_path = os.path.abspath(output_pdf)
+        
+        # Initialize PowerPoint
+        powerpoint = win32com.client.Dispatch("PowerPoint.Application")
+        powerpoint.Visible = False
+        
+        # Open the presentation
+        presentation = powerpoint.Presentations.Open(input_path, WithWindow=False)
+        
+        # Export to PDF (32 = ppSaveAsPDF)
+        presentation.SaveAs(output_path, 32)
+        
+        # Close and cleanup
+        presentation.Close()
+        powerpoint.Quit()
+        
+        print(f"Successfully exported to PDF: {output_pdf}")
+    
+    except Exception as e:
+        print(f"Error exporting to PDF: {e}", file=sys.stderr)
+        print("Note: PDF export requires PowerPoint to be installed on Windows", file=sys.stderr)
+        raise
+
+
 def modify_ppt(input_file: str, output_file: str, replacements: Dict[str, str]) -> None:
     """Modify a .ppt file using COM automation (Windows only)."""
     try:
