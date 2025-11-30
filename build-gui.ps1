@@ -25,7 +25,7 @@ uv run pyinstaller --onefile `
     --name pptmod `
     --windowed `
     --icon NONE `
-    --add-data "config.json;." `
+    --add-data "pptmodconfig.json;." `
     --hidden-import=wx `
     --hidden-import=wx.grid `
     --hidden-import=win32com.client `
@@ -42,7 +42,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "  .\dist\pptmod.exe" -ForegroundColor White
     Write-Host "`nTo distribute to others:" -ForegroundColor Yellow
     Write-Host "  1. Share the 'dist\pptmod.exe' file" -ForegroundColor White
-    Write-Host "  2. Include a 'config.json' file (optional - users can create their own)" -ForegroundColor White
+    Write-Host "  2. Include a 'pptmodconfig.json' file (optional - users can create their own)" -ForegroundColor White
     Write-Host "  3. No Python or dependencies needed!" -ForegroundColor White
     Write-Host "`nNote: The exe file is self-contained (~150MB)" -ForegroundColor Gray
 } else {

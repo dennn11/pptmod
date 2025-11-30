@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-datas = [('config.json', '.')]
+datas = [('pptmodconfig.json', '.')]
 binaries = []
 hiddenimports = ['wx.grid', 'win32com.client', 'pptx']
 

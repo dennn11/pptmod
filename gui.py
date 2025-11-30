@@ -99,7 +99,7 @@ class PPTModifierFrame(wx.Frame):
         config_panel = wx.Panel(self.panel)
         config_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        self.config_text = wx.TextCtrl(config_panel, value="config.json", style=wx.TE_READONLY)
+        self.config_text = wx.TextCtrl(config_panel, value="pptmodconfig.json", style=wx.TE_READONLY)
         config_sizer.Add(self.config_text, 1, wx.EXPAND | wx.RIGHT, 5)
         
         browse_config_btn = wx.Button(config_panel, label="Load Config")
@@ -190,14 +190,15 @@ class PPTModifierFrame(wx.Frame):
         self.hide_log()
         
         # Set default config file and load it
-        self.config_file = "config.json"
+        self.config_file = os.path.abspath("pptmodconfig.json")
         self.load_config_into_grid(self.config_file)
     
     def load_config_into_grid(self, config_path: str):
         """Load config file into the replacement grid."""
         try:
             if not os.path.exists(config_path):
-                self.log(f"Config file not found: {config_path}")
+                if hasattr(self, 'log_text'):
+                    self.log(f"Config file not found: {config_path}")
                 return
             
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -224,10 +225,12 @@ class PPTModifierFrame(wx.Frame):
                     self.replacement_grid.SetCellValue(row, 1, value)
                     row += 1
             
-            self.log(f"Loaded {num_rows} replacement(s) from {config_path}")
+            if hasattr(self, 'log_text'):
+                self.log(f"Loaded {num_rows} replacement(s) from {config_path}")
             
         except Exception as e:
-            self.log(f"Error loading config: {str(e)}")
+            if hasattr(self, 'log_text'):
+                self.log(f"Error loading config: {str(e)}")
     
     def get_replacements_from_grid(self) -> Dict[str, str]:
         """Get all replacements from the grid."""
@@ -296,10 +299,20 @@ class PPTModifierFrame(wx.Frame):
         
         # Ask user where to save
         wildcard = "JSON files (*.json)|*.json|All files (*.*)|*.*"
+        
+        # Split path into directory and filename
+        if self.config_file and os.path.exists(self.config_file):
+            default_dir = os.path.dirname(os.path.abspath(self.config_file))
+            default_file = os.path.basename(self.config_file)
+        else:
+            default_dir = os.getcwd()
+            default_file = "pptmodconfig.json"
+        
         dialog = wx.FileDialog(
             self,
             "Save Configuration File",
-            defaultFile=self.config_file,
+            defaultDir=default_dir,
+            defaultFile=default_file,
             wildcard=wildcard,
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
         )
@@ -359,7 +372,6 @@ class PPTModifierFrame(wx.Frame):
         # Resize window to be smaller without log
         current_size = self.GetSize()
         self.SetSize((current_size.width, 600))
-        self.Fit()
 
     def on_browse_input(self, event):
         """Handle browse input file button."""
@@ -518,7 +530,12 @@ class PPTModifierFrame(wx.Frame):
         if result == wx.YES:
             # Open the folder containing the output file
             folder = str(Path(output_file).parent)
-            os.startfile(folder)
+            try:
+                os.startfile(folder)
+            except AttributeError:
+                # os.startfile is Windows-only, use alternative for other platforms
+                import subprocess
+                subprocess.run(['xdg-open', folder], check=False)
     
     def log(self, message: str):
         """Add a message to the log."""
@@ -611,7 +628,12 @@ class PPTModifierFrame(wx.Frame):
         
         if result == wx.YES:
             folder = str(Path(pdf_path).parent)
-            os.startfile(folder)
+            try:
+                os.startfile(folder)
+            except AttributeError:
+                # os.startfile is Windows-only, use alternative for other platforms
+                import subprocess
+                subprocess.run(['xdg-open', folder], check=False)
         
     def on_quit(self, event):
         """Handle quit button."""

@@ -170,8 +170,8 @@ def main():
     )
     parser.add_argument(
         '-c', '--config',
-        help='Config file with text replacements (default: config.json)',
-        default='config.json'
+        help='Config file with text replacements (default: pptmodconfig.json)',
+        default='pptmodconfig.json'
     )
     
     args = parser.parse_args()
