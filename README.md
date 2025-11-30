@@ -1,6 +1,6 @@
-# PowerPoint Modifier CLI
+# PowerPoint Modifier
 
-A flexible CLI tool that modifies text in PowerPoint presentations (both `.ppt` and `.pptx`) based on text replacements defined in a JSON config file.
+A flexible tool that modifies text in PowerPoint presentations (both `.ppt` and `.pptx`) based on text replacements defined in a JSON config file. Available as both a **GUI application** and **CLI tool**.
 
 ## Features
 
@@ -8,14 +8,24 @@ A flexible CLI tool that modifies text in PowerPoint presentations (both `.ppt` 
 - ✅ Text replacement across all slides
 - ✅ Handles text in shapes, text boxes, and tables
 - ✅ Configurable via JSON config file
-- ✅ Simple command-line interface
-- ✅ **Standalone executable** - no Python installation required!
+- ✅ **User-friendly GUI** with drag-and-drop interface
+- ✅ **Command-line interface** for automation
+- ✅ **Standalone executables** - no Python installation required!
 
 ## Download & Use (No Installation Required)
 
 ### For End Users
 
-1. **Download** the `pptmod.exe` from the releases
+#### GUI Application (Recommended)
+
+1. **Download** `pptmod-gui.exe` from the releases
+2. **Double-click** to launch the application
+3. **Select** your PowerPoint file, config file, and output location
+4. **Click** "Process PowerPoint" and you're done!
+
+#### Command-Line Tool
+
+1. **Download** `pptmod.exe` from the releases
 2. **Create** a `config.json` file with your text replacements (see [Configuration File](#configuration-file))
 3. **Run** the tool:
    ```cmd
@@ -32,32 +42,53 @@ That's it! No Python or dependencies needed.
 
 ```bash
 # Install runtime dependencies
-pip install python-pptx pywin32
+pip install python-pptx pywin32 wxPython
 
 # Install build tools (optional, for creating executable)
 pip install pyinstaller
 
 # Or using uv (if you have it)
-uv pip install -e ".[build]"
+uv sync
 ```
 
-#### Build Standalone Executable
+#### Build Standalone Executables
 
 ```bash
-# Run the build script
+# Build GUI executable
+.\build-gui.ps1
+
+# Build CLI executable
 .\build.ps1
 
 # Or manually with PyInstaller
-pyinstaller pptmod.spec
+pyinstaller pptmod-gui.spec  # For GUI
+pyinstaller pptmod.spec      # For CLI
 ```
 
-The executable will be created in `dist\pptmod.exe`.
+The executables will be created in the `dist\` folder.
 
 **Note:** `.ppt` file support requires Microsoft PowerPoint to be installed on Windows.
 
 ## Usage
 
-### Using the Executable (Recommended for End Users)
+### Using the GUI Application (Easiest)
+
+1. **Launch** `pptmod-gui.exe` or run `python gui.py`
+2. **Browse** to select your input PowerPoint file
+3. **Optional:** Choose a custom output file location
+4. **Optional:** Select a different config file (default: `config.json`)
+5. **Click** "Process PowerPoint"
+6. **View** the output log for results
+
+The GUI provides:
+- File browser dialogs for easy file selection
+- Real-time processing log
+- Success notifications
+- Option to open output folder after completion
+
+### Using the Command-Line Tool
+
+#### Executable (Recommended for End Users)
 
 ```cmd
 # Basic usage
@@ -73,21 +104,29 @@ pptmod.exe input.pptx -c custom_config.json
 pptmod.exe template.ppt -o final.ppt -c replacements.json
 ```
 
-### Using Python Script (For Development)
+#### Python Script (For Development)
 
 ```bash
-# Basic usage
+# Run CLI
 python main.py presentation.pptx
 
+# Run GUI
+python gui.py
+
 # Or with uv
-uv run main.py presentation.pptx
+uv run main.py presentation.pptx  # CLI
+uv run gui.py                      # GUI
+
+# Or with entry points (after uv sync)
+pptmod presentation.pptx           # CLI
+pptmod-gui                         # GUI
 ```
 
 This will:
 - Read replacements from `config.json` (default)
 - Create a modified file named `presentation_modified.pptx`
 
-### Command-Line Options
+### Command-Line Options (CLI only)
 
 - `input` - Input PowerPoint file (.ppt or .pptx) - **required**
 - `-o, --output` - Output file path (default: `input_modified.ext`)
@@ -149,9 +188,23 @@ python main.py old_template.ppt -o filled_template.ppt
 
 To share the tool with users who don't have Python installed:
 
-1. **Build the executable** (see [Building from Source](#building-from-source))
+#### GUI Application (Easiest for End Users)
+
+1. **Build the GUI executable** (see [Building from Source](#building-from-source))
 2. **Package for distribution:**
-   - `dist\pptmod.exe` - The standalone executable
+   - `dist\pptmod-gui.exe` - The standalone GUI application
+   - `config.json` - Example configuration file
+   - `README.txt` - Simple usage instructions
+
+3. **User Instructions:**
+   - Double-click `pptmod-gui.exe` to launch
+   - Use the interface to select files and process presentations
+
+#### CLI Tool (For Advanced Users/Automation)
+
+1. **Build the CLI executable** (see [Building from Source](#building-from-source))
+2. **Package for distribution:**
+   - `dist\pptmod.exe` - The standalone CLI executable
    - `config.json` - Example configuration file
    - `README.txt` - Simple usage instructions
 

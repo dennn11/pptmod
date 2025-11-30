@@ -7,6 +7,7 @@ requires-python = ">=3.8"
 dependencies = [
     "python-pptx>=0.6.21",
     "pywin32>=305",
+    "wxPython>=4.2.0",
 ]
 
 [project.optional-dependencies]
@@ -16,3 +17,4 @@ build = [
 
 [project.scripts]
 pptmod = "main:main"
+pptmod-gui = "gui:main"
