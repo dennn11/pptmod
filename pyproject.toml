@@ -18,3 +18,8 @@ build = [
 [project.scripts]
 pptmod = "main:main"
 pptmod-gui = "gui:main"
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.0.0",
+]

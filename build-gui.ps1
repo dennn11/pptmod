@@ -11,31 +11,43 @@ if (Test-Path ".\dist") {
 if (Test-Path ".\build") {
     Remove-Item -Recurse -Force ".\build"
 }
+if (Test-Path ".\pptmod-gui.spec") {
+    Remove-Item -Force ".\pptmod-gui.spec"
+}
 
 # Install build dependencies if not already installed
 Write-Host "Installing build dependencies..." -ForegroundColor Yellow
-pip install pyinstaller python-pptx pywin32 wxPython
+uv pip install pyinstaller python-pptx pywin32 wxPython
 
 # Build the GUI executable
 Write-Host "Creating GUI executable with PyInstaller..." -ForegroundColor Yellow
-pyinstaller --onefile `
-    --name pptmod-gui `
+uv run pyinstaller --onefile `
+    --name pptmod `
     --windowed `
     --icon NONE `
     --add-data "config.json;." `
     --hidden-import=wx `
+    --hidden-import=wx.grid `
     --hidden-import=win32com.client `
     --hidden-import=pptx `
+    --collect-all wx `
     gui.py
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "`nGUI Build successful!" -ForegroundColor Green
-    Write-Host "Executable location: .\dist\pptmod-gui.exe" -ForegroundColor Cyan
-    Write-Host "`nTo distribute:" -ForegroundColor Yellow
-    Write-Host "  1. Share the 'dist\pptmod-gui.exe' file" -ForegroundColor White
-    Write-Host "  2. Include a 'config.json' file for users" -ForegroundColor White
-    Write-Host "  3. Users can double-click pptmod-gui.exe to launch" -ForegroundColor White
+    Write-Host "`n========================================" -ForegroundColor Green
+    Write-Host "   BUILD SUCCESSFUL!" -ForegroundColor Green
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "`nExecutable created: .\dist\pptmod.exe" -ForegroundColor Cyan
+    Write-Host "`nYou can now run the application by double-clicking:" -ForegroundColor Yellow
+    Write-Host "  .\dist\pptmod.exe" -ForegroundColor White
+    Write-Host "`nTo distribute to others:" -ForegroundColor Yellow
+    Write-Host "  1. Share the 'dist\pptmod.exe' file" -ForegroundColor White
+    Write-Host "  2. Include a 'config.json' file (optional - users can create their own)" -ForegroundColor White
+    Write-Host "  3. No Python or dependencies needed!" -ForegroundColor White
+    Write-Host "`nNote: The exe file is self-contained (~150MB)" -ForegroundColor Gray
 } else {
-    Write-Host "`nGUI Build failed!" -ForegroundColor Red
+    Write-Host "`n========================================" -ForegroundColor Red
+    Write-Host "   BUILD FAILED!" -ForegroundColor Red
+    Write-Host "========================================" -ForegroundColor Red
     exit 1
 }

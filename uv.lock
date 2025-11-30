@@ -790,6 +790,11 @@ build = [
     { name = "pyinstaller" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pyinstaller" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "pyinstaller", marker = "extra == 'build'", specifier = ">=6.0.0" },
@@ -798,6 +803,9 @@ requires-dist = [
     { name = "wxpython", specifier = ">=4.2.0" },
 ]
 provides-extras = ["build"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pyinstaller", specifier = ">=6.0.0" }]
 
 [[package]]
 name = "pyinstaller"
