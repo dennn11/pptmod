@@ -218,6 +218,19 @@ class PPTModifierFrame(wx.Frame):
             
             replacements = config['replacements']
             
+            # Load last template if it exists and is accessible
+            if 'last_template' in config and config['last_template']:
+                last_template = config['last_template']
+                if os.path.exists(last_template) and hasattr(self, 'input_text'):
+                    self.input_file = last_template
+                    self.input_text.SetValue(last_template)
+                    # Auto-generate output filename
+                    input_path = Path(last_template)
+                    auto_output = str(input_path.parent / f"{input_path.stem}_modified{input_path.suffix}")
+                    self.output_text.SetValue(auto_output)
+                    if hasattr(self, 'log_text'):
+                        self.log(f"Restored last template: {last_template}")
+            
             # Clear existing grid
             if self.replacement_grid.GetNumberRows() > 0:
                 self.replacement_grid.DeleteRows(0, self.replacement_grid.GetNumberRows())
@@ -338,7 +351,10 @@ class PPTModifierFrame(wx.Frame):
             save_path = dialog.GetPath()
             
             try:
-                config_data = {"replacements": replacements}
+                config_data = {
+                    "replacements": replacements,
+                    "last_template": self.input_file if self.input_file else ""
+                }
                 
                 with open(save_path, 'w', encoding='utf-8') as f:
                     json.dump(config_data, f, indent=2, ensure_ascii=False)
@@ -405,6 +421,9 @@ class PPTModifierFrame(wx.Frame):
             self.input_text.SetValue(self.input_file)
             self.log(f"Selected input file: {self.input_file}")
             
+            # Auto-save last template to config
+            self.save_last_template_to_config()
+            
             # Auto-generate output filename if not set
             if not self.output_file:
                 input_path = Path(self.input_file)
@@ -412,6 +431,27 @@ class PPTModifierFrame(wx.Frame):
                 self.output_text.SetValue(auto_output)
         
         dialog.Destroy()
+    
+    def save_last_template_to_config(self):
+        """Save the last opened template to the config file."""
+        if not self.config_file or not os.path.exists(self.config_file):
+            return
+        
+        try:
+            # Read existing config
+            with open(self.config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            
+            # Update last_template
+            config['last_template'] = self.input_file if self.input_file else ""
+            
+            # Write back to config
+            with open(self.config_file, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=2, ensure_ascii=False)
+        
+        except Exception as e:
+            # Silent fail - not critical
+            pass
         
     def on_browse_output(self, event):
         """Handle browse output file button."""
