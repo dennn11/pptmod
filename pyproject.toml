@@ -19,6 +19,16 @@ build = [
 pptmod = "main:main"
 pptmod-gui = "gui:main"
 
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "gui", "build"]
+
+[tool.uv]
+package = true
+
 [dependency-groups]
 dev = [
     "pyinstaller>=6.0.0",
