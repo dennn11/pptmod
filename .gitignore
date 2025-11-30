@@ -9,6 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Config files (user-specific)
+custom.json
+
 # PPT related
 *.pptx
 *.ppt
