@@ -1,0 +1,18 @@
+[project]
+name = "pptmod"
+version = "0.1.0"
+description = "CLI tool to modify text in PowerPoint presentations (.ppt and .pptx) based on a config file"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "python-pptx>=0.6.21",
+    "pywin32>=305",
+]
+
+[project.optional-dependencies]
+build = [
+    "pyinstaller>=6.0.0",
+]
+
+[project.scripts]
+pptmod = "main:main"

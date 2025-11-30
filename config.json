@@ -1,0 +1,10 @@
+{
+  "replacements": {
+    "{{NAME}}": "John Doe",
+    "{{COMPANY}}": "Acme Corporation",
+    "{{DATE}}": "November 29, 2025",
+    "{{TITLE}}": "Senior Developer",
+    "{{PROJECT}}": "PowerPoint Modifier Project",
+    "placeholder_text": "actual_text"
+  }
+}
