@@ -7,10 +7,12 @@ A simple graphical interface for modifying text in PowerPoint presentations.
 import wx
 import json
 import os
+import sys
 import wx.grid
 from pathlib import Path
 from typing import Dict
 import threading
+import subprocess
 from main import modify_pptx, modify_ppt, export_to_pdf
 
 
@@ -205,7 +207,13 @@ class PPTModifierFrame(wx.Frame):
                 config = json.load(f)
             
             if 'replacements' not in config:
-                self.log("Warning: Config file missing 'replacements' key")
+                if hasattr(self, 'log_text'):
+                    self.log("Warning: Config file missing 'replacements' key")
+                else:
+                    # During initialization, show a message box
+                    wx.CallAfter(wx.MessageBox, 
+                        f"Config file '{config_path}' is missing 'replacements' key.",
+                        "Invalid Config", wx.OK | wx.ICON_WARNING)
                 return
             
             replacements = config['replacements']
@@ -235,6 +243,7 @@ class PPTModifierFrame(wx.Frame):
     def get_replacements_from_grid(self) -> Dict[str, str]:
         """Get all replacements from the grid."""
         replacements = {}
+        duplicates = []
         num_rows = self.replacement_grid.GetNumberRows()
         
         for row in range(num_rows):
@@ -243,7 +252,15 @@ class PPTModifierFrame(wx.Frame):
             
             # Only add non-empty pairs
             if key:
+                if key in replacements:
+                    duplicates.append(f"Row {row + 1}: '{key}'")
                 replacements[key] = value
+        
+        # Warn about duplicates
+        if duplicates and hasattr(self, 'log_text'):
+            self.log(f"Warning: Duplicate keys found (last value will be used):")
+            for dup in duplicates:
+                self.log(f"  - {dup}")
         
         return replacements
     
@@ -499,15 +516,17 @@ class PPTModifierFrame(wx.Frame):
             # Process file
             wx.CallAfter(self.log, "Processing presentation...")
             
+            replacement_count = 0
             if file_ext == '.pptx':
-                modify_pptx(input_file, output_file, replacements)
+                replacement_count = modify_pptx(input_file, output_file, replacements)
             elif file_ext == '.ppt':
-                modify_ppt(input_file, output_file, replacements)
+                replacement_count = modify_ppt(input_file, output_file, replacements)
             else:
                 wx.CallAfter(self.log, f"ERROR: Unsupported file type '{file_ext}'")
                 wx.CallAfter(self.process_btn.Enable, True)
                 return
             
+            wx.CallAfter(self.log, f"✓ Made {replacement_count} text replacement(s)")
             wx.CallAfter(self.log, "✓ Processing completed successfully!")
             wx.CallAfter(self.log, f"Output saved to: {output_file}")
             wx.CallAfter(self.show_success, output_file)
@@ -531,11 +550,14 @@ class PPTModifierFrame(wx.Frame):
             # Open the folder containing the output file
             folder = str(Path(output_file).parent)
             try:
-                os.startfile(folder)
-            except AttributeError:
-                # os.startfile is Windows-only, use alternative for other platforms
-                import subprocess
-                subprocess.run(['xdg-open', folder], check=False)
+                if sys.platform == 'win32':
+                    os.startfile(folder)
+                elif sys.platform == 'darwin':
+                    subprocess.run(['open', folder], check=False)
+                else:
+                    subprocess.run(['xdg-open', folder], check=False)
+            except Exception as e:
+                wx.MessageBox(f"Could not open folder: {e}", "Error", wx.OK | wx.ICON_WARNING)
     
     def log(self, message: str):
         """Add a message to the log."""
@@ -629,11 +651,14 @@ class PPTModifierFrame(wx.Frame):
         if result == wx.YES:
             folder = str(Path(pdf_path).parent)
             try:
-                os.startfile(folder)
-            except AttributeError:
-                # os.startfile is Windows-only, use alternative for other platforms
-                import subprocess
-                subprocess.run(['xdg-open', folder], check=False)
+                if sys.platform == 'win32':
+                    os.startfile(folder)
+                elif sys.platform == 'darwin':
+                    subprocess.run(['open', folder], check=False)
+                else:
+                    subprocess.run(['xdg-open', folder], check=False)
+            except Exception as e:
+                wx.MessageBox(f"Could not open folder: {e}", "Error", wx.OK | wx.ICON_WARNING)
         
     def on_quit(self, event):
         """Handle quit button."""

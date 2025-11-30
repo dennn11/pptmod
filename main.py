@@ -33,8 +33,12 @@ def load_config(config_path: str) -> Dict[str, str]:
         sys.exit(1)
 
 
-def modify_pptx(input_file: str, output_file: str, replacements: Dict[str, str]) -> None:
-    """Modify a .pptx file using python-pptx library."""
+def modify_pptx(input_file: str, output_file: str, replacements: Dict[str, str]) -> int:
+    """Modify a .pptx file using python-pptx library.
+    
+    Returns:
+        Number of text replacements made
+    """
     try:
         prs = Presentation(input_file)
         replacement_count = 0
@@ -66,10 +70,11 @@ def modify_pptx(input_file: str, output_file: str, replacements: Dict[str, str])
         prs.save(output_file)
         print(f"Successfully modified {input_file} -> {output_file}")
         print(f"Made {replacement_count} text replacements")
+        return replacement_count
     
     except Exception as e:
         print(f"Error modifying .pptx file: {e}", file=sys.stderr)
-        sys.exit(1)
+        raise
 
 
 def export_to_pdf(input_file: str, output_pdf: str) -> None:
@@ -101,8 +106,12 @@ def export_to_pdf(input_file: str, output_pdf: str) -> None:
         raise
 
 
-def modify_ppt(input_file: str, output_file: str, replacements: Dict[str, str]) -> None:
-    """Modify a .ppt file using COM automation (Windows only)."""
+def modify_ppt(input_file: str, output_file: str, replacements: Dict[str, str]) -> int:
+    """Modify a .ppt file using COM automation (Windows only).
+    
+    Returns:
+        Number of text replacements made
+    """
     try:
         # Convert to absolute paths
         input_path = os.path.abspath(input_file)
@@ -148,11 +157,12 @@ def modify_ppt(input_file: str, output_file: str, replacements: Dict[str, str]) 
         
         print(f"Successfully modified {input_file} -> {output_file}")
         print(f"Made {replacement_count} text replacements")
+        return replacement_count
     
     except Exception as e:
         print(f"Error modifying .ppt file: {e}", file=sys.stderr)
         print("Note: .ppt files require PowerPoint to be installed on Windows", file=sys.stderr)
-        sys.exit(1)
+        raise
 
 
 def main():
