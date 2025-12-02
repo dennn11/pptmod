@@ -8,6 +8,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+import comtypes.client
 from typing import Dict, Any
 from pptx import Presentation
 import win32com.client
@@ -85,11 +86,11 @@ def export_to_pdf(input_file: str, output_pdf: str) -> None:
         output_path = os.path.abspath(output_pdf)
         
         # Initialize PowerPoint
-        powerpoint = win32com.client.Dispatch("PowerPoint.Application")
-        powerpoint.Visible = False
+        powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+        powerpoint.Visible = 1
         
         # Open the presentation
-        presentation = powerpoint.Presentations.Open(input_path, WithWindow=False)
+        presentation = powerpoint.Presentations.Open(input_path)
         
         # Export to PDF (32 = ppSaveAsPDF)
         presentation.SaveAs(output_path, 32)

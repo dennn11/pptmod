@@ -667,7 +667,36 @@ class PPTModifierFrame(wx.Frame):
     def export_to_pdf_thread(self, input_file: str, pdf_path: str):
         """Export PowerPoint to PDF (runs in separate thread)."""
         try:
-            export_to_pdf(input_file, pdf_path)
+            replacements = self.get_replacements_from_grid()
+        
+            if not replacements:
+                wx.MessageBox(
+                    "No replacements defined. Please add at least one replacement in the grid.",
+                    "No Replacements",
+                    wx.OK | wx.ICON_WARNING
+                )
+                return
+            
+            wx.CallAfter(self.log, f"Using {len(replacements)} replacement(s)")
+            
+            # Determine file type
+            file_ext = Path(input_file).suffix.lower()
+            
+            # Process file
+            wx.CallAfter(self.log, "Processing presentation...")
+            input_path = Path(self.input_file)
+            tmp_output = str(input_path.parent / f"{input_path.stem}_modified{input_path.suffix}")
+            replacement_count = 0
+            if file_ext == '.pptx':
+                replacement_count = modify_pptx(input_file, tmp_output, replacements)
+            elif file_ext == '.ppt':
+                replacement_count = modify_ppt(input_file, tmp_output, replacements)
+            else:
+                wx.CallAfter(self.log, f"ERROR: Unsupported file type '{file_ext}'")
+                wx.CallAfter(self.process_btn.Enable, True)
+                return
+            export_to_pdf(tmp_output, pdf_path)
+            wx.CallAfter(self.log, f"✓ Made {replacement_count} text replacement(s)")
             wx.CallAfter(self.log, "✓ PDF export completed successfully!")
             wx.CallAfter(self.log, f"PDF saved to: {pdf_path}")
             wx.CallAfter(self.show_pdf_success, pdf_path)
